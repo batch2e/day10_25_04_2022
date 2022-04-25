@@ -1,0 +1,404 @@
+Q Is SQL case sensitive?
+A No
+-----------------------------------------------------------------------------------------------
+/* Creating a table called books with bookid , title and price as columns */
+CREATE TABLE books(
+bookid INTEGER,
+title VARCHAR2(20),
+price NUMBER(6,1)
+)
+/* INSERT for inserting the record/records */
+
+INSERT INTO books VALUES(1,'Java',500.79)
+INSERT INTO books VALUES(2,'DBMS',40000.89)
+INSERT INTO books VALUES(2,DBMS,40000.89)
+INSERT INTO books VALUES(2,'hello friends how are you?',40000.89)
+INSERT INTO books VALUES(1,'Java')   /* ORA-00947: not enough values */
+
+
+/* SELECT command is used to read/access the content(records) of the table */
+
+SELECT * FROM books    / * means all the columns */
+
+/* For selective columns from the table , we can mention the column/columns from the table */
+
+SELECT bookid FROM books
+
+SELECT bookid,title FROM books
+
+SELECT title,bookid FROM books
+
+SELECT title,price FROM books
+
+
+
+/* droping or deleting a table */
+
+DROP TABLE books
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE Student ( 
+    Studentid INTEGER PRIMARY KEY,
+    FName VARCHAR2(10), 
+    ContactNo NUMBER (10));
+
+
+
+CREATE TABLE Student ( 
+    Studentid INTEGER CONSTRAINT stud_sid_pk PRIMARY KEY,
+    FName VARCHAR2(10), 
+    ContactNo NUMBER (10));
+
+
+INSERT INTO student VALUES(1,'Rohit',9876543210);
+INSERT INTO student VALUES(2,'Alex',8876543210);
+
+
+
+CREATE TABLE Marks (
+    CourseId INTEGER, 
+    StudentId INTEGER CONSTRAINT marks_sid_fk REFERENCES Student (StudentId), 
+    MarksScored DECIMAL (5,2));
+
+INSERT INTO marks VALUES(101,1,80);
+INSERT INTO marks VALUES(102,1,50);
+INSERT INTO marks VALUES(101,3,80); /* Write your SQL statement, stored procedure or anonymous block
+  
+Query result
+ORA-02291: integrity constraint (WAL352358.MARKS_SID_FK) violated - parent key not found */
+
+
+DROP TABLE student;
+
+/* ORA-02449: unique/primary keys in table referenced by foreign keys */
+/* While dropping the master/parent table we need to check whether the child table is having the reference
+of record. If the child table is not having any related record, parent table can be deleted. */
+
+
+DROP TABLE <Table name> CASCADE CONSTRAINTS;
+Conclusion: CASCADE CONSTRAINTS clause will drop all the referential integrity constraints that refer to the primary or unique keys in the table. Hence all the parent tables can be dropped before the child tables.
+
+DROP TABLE student CASCADE CONSTRAINTS; 
+-------------------------------------------------------------------------------------------------------
+Constraints are applied in two ways:
+1) Column level constraint==> the constraint is defined alongwith the column declaration
+ 
+   CREATE TABLE books (
+     bookid INTEGER CONSTRAINT books_bookid_pk PRIMARY KEY,
+     title VARCHAR2(20),
+     price NUMBER(7,2)
+    )
+     
+  
+2)  table level constraint==> the constraint is defined separately from the column declaration
+     CREATE TABLE books(
+     bookid INTEGER,
+     CONSTRAINT books_bookid_pk PRIMARY KEY(bookid),
+     price NUMBER(7,2)
+)
+
+   OR
+
+
+  CREATE TABLE books(
+     bookid INTEGER,
+     price NUMBER(7,2),
+     CONSTRAINT books_bookid_pk PRIMARY KEY(bookid)
+)
+[ Table level constraints are used when multiple columns are involved in enforcing/applying the constraint. ] 
+[ Example can be as for composite primary key we have to write table level constraint , we cannot create
+  composite key with column level constraint ]
+------------------------------------------------------------------------------------------------------------
+
+  CREATE TABLE books (
+     bookid INTEGER CONSTRAINT books_bookid_pk PRIMARY KEY,
+     title VARCHAR2(20),
+     price NUMBER(7,2)
+    )
+
+INSERT INTO books VALUES(1,'Java',500.79)
+INSERT INTO books VALUES(2,'DBMS',40000.89) 
+
+INSERT INTO books VALUES(1,'Java',500.79);
+/* ORA-00001: unique constraint (WAL352358.BOOKS_BOOKID_PK) violated */
+
+INSERT INTO books VALUES(NULL,'DBMS',40000.89) 
+/* cannot insert NULL into ("WAL352358"."BOOKS"."BOOKID") */
+
+INSERT INTO books(title,price) VALUES('HTML',500);  
+
+/* ORA-01400: cannot insert NULL into ("WAL352358"."BOOKS"."BOOKID") */
+
+INSERT INTO books VALUES(3,NULL,NULL);
+INSERT INTO books(bookid,title) VALUES (4,'CSS');
+
+/* Both the records are inserted.
+ In the above two cases , in the first case we have
+ NULL value for title and price */
+/* In the secord record we have NULL value for the price */
+
+
+Conclusions:
+1) Primary key column cannot have repeated values.
+2) Primary key column cannot have a null value.
+
+BOOKID	TITLE	PRICE
+1	Java	500.79
+3	NULL	NULL
+4	CSS	NULL
+2	DBMS	40000.89
+-----------------------------------------------------------------------------------------------------------
+Q How we can stop inserting the NULL value?
+A By using the constraint NOT NULL
+
+
+  CREATE TABLE books (
+     bookid INTEGER CONSTRAINT books_bookid_pk PRIMARY KEY,
+     title VARCHAR2(20) NOT NULL,
+     price NUMBER(7,2) NOT NULL
+    )
+
+
+INSERT INTO books VALUES(3,NULL,NULL);
+INSERT INTO books(bookid,title) VALUES (4,'CSS');
+
+ORA-01400: cannot insert NULL into ("WAL352358"."BOOKS"."TITLE")
+ORA-01400: cannot insert NULL into ("WAL352358"."BOOKS"."PRICE")
+[Note: NOT NULL constraint cannot be applied at table level.]
+
+CREATE TABLE Student (
+    StudentId INTEGER CONSTRAINT Stud_SId_nn NOT NULL,
+    FName VARCHAR2(10) NOT NULL,
+    LName VARCHAR2(10));
+/* Oracle treats Empty String as NULL and hence record could not be inserted. */
+INSERT INTO books VALUES(3,'',''); /* '' is an empty string */
+-----------------------------------------------------------------------------------------------------------
+
+CREATE TABLE Student (
+    StudentId INTEGER, 
+    FName VARCHAR2(10), 
+    DOJ DATE DEFAULT SYSDATE);
+----------------------------------------------------------------------------------
+CREATE TABLE customerdetails (
+    customerid INTEGER PRIMARY KEY,
+    customername VARCHAR2(20) NOT NULL,
+    city VARCHAR2(20) DEFAULT 'Delhi'
+  );
+  
+  INSERT INTO customerdetails(customerid,customername) VALUES(1,'Ashok');
+INSERT INTO customerdetails VALUES(2,'Ashok',NULL);
+INSERT INTO customerdetails VALUES(3,'Rohit','Chennai');
+----------------------------------------------------------------------------------------
+
+SELECT * FROM tab /* Returns a list of tables in the current database */  
+----------------------------------------------------------------------------------------
+
+SOME MORE:
+
+
+/* MASTER Table
+   CREATE TABLE subject(
+    subjectid INTEGER CONSTRAINT subject_pk PRIMARY KEY,
+    name VARCHAR2(20)
+   )
+
+    child TAble
+
+    CREATE TABLE Student(
+     roll INTEGER CONSTRAINT student_pk PRIMARY KEY,
+     name VARCHAR2(10), 
+     subjectid INTEGER CONSTRAINT subjectid_fk  REFERENCES subject(subjectid)
+    );  
+     
+
+*/
+
+  INSERT INTO subject VALUES(100,'Maths');
+  INSERT INTO subject VALUES(101,'English');
+  INSERT INTO subject VALUES(102,'Science');
+
+  INSERT INTO student VALUES(1,'Suresh',103)
+/* ORA-02291: integrity constraint (WAL352358.SUBJECTID_FK) violated - parent key not found*/
+// We are trying to insert a record in the child table and while inserting, we mentioned a
+  subject id which is not available in the parent table subject. So we get the error
+
+ INSERT INTO student VALUES(1,'Suresh',101)
+
+
+ DROP TABLE subject
+
+
+CREATE TABLE student(
+roll INTEGER,
+name VARCHAR2(10),
+marks NUMBER(5,2));
+
+INSERT INTO student VALUES(1,'Ram',98.05);
+INSERT INTO student VALUES(2,'Juben',80);
+
+How to check whether the table got created or not?
+
+  DESCRIBE student; 
+ 
+  SELECT * FROM student;
+
+---------------------------------------------------------------------------------------
+Not null==> null values are not allowed. When we define a primary key , primary key cannot 
+contain a null value. But rest of the columns can have null values until unless we explicitly
+mention the constraint for not null.
+
+
+ CREATE TABLE customerdetails(
+   custid VARCHAR2(5) CONSTRAINT customer_custid_pk PRIMARY KEY,
+   customername VARCHAR2(20),
+   address VARCHAR2(20)
+   );
+
+INSERT INTO customerdetails VALUES('C0001','Ram','a/22, Indira Nagar,Delhi');
+INSERT INTO customerdetails VALUES(null,'Ram','a/22, Indira Nagar,Delhi');
+// primary key cannot have null values
+INSERT INTO customerdetails VALUES('C0002',null,null);
+INSERT INTO customerdetails(custid,address) VALUES('C0003','22/6 Adarsh nagar');
+
+// Any other columns can have null values by default.
+
+
+ CREATE TABLE customerdetails(
+   custid VARCHAR2(5) CONSTRAINT customer_custid_pk PRIMARY KEY,
+   customername VARCHAR2(20) NOT NULL,
+   address VARCHAR2(20) NOT NULL
+   );
+
+
+INSERT into student VALUES(1001,'Alex',null);
+INSERT into student(studentid,name) VALUES (1001,'Alex');
+
+CREATE TABLE customerdetails(
+   custid VARCHAR2(5) CONSTRAINT customer_custid_pk PRIMARY KEY,
+   customername VARCHAR2(20) NOT NULL,
+   address VARCHAR2(20) DEFAULT 'Delhi'
+   );
+
+
+   Store the empid and courseid and the marks
+    empid   courseid marks
+    101     Java   90
+    102     Java   89
+    101     DBMS   70
+    102     DBMS   56
+    101     Java   56
+
+
+  CREATE TABLE result(
+   empid INTEGER,
+   courseid VARCHAR2(5),
+   marks NUMBER(5,2),
+   CONSTRAINT result_comp_pk PRIMARY KEY(empid,courseid)
+   );
+
+   -------------------------------------------------------------------
+* NOT NULL
+* PRIMARY KEY
+* FOREIGN KEY 
+* UNIQUE
+* CHECK CONSTRAINT
+
+   Constraint are called as column level and another is table
+level constraint
+
+  CREATE TABLE demo1 (
+   name VARCHAR2(20) NOT NULL
+  )
+ // NOT NULL is such a kind of constraint which are at the 
+column level only.
+
+  CREATE TABLE demo2 (
+   name VARCHAR2(20) CONSTRAINT demo2_name_not_null NOT NULL
+  );
+
+  CREATE TABLE demo3 (
+   id INTEGER PRIMARY KEY,
+   name VARCHAR2(20)
+   )
+
+   CREATE TABLE demo4 (
+   id INTEGER CONSTRAINT demo4_id_pk PRIMARY KEY,
+   name VARCHAR2(20)
+   );
+
+   CREATE TABLE demo5 (
+   id INTEGER,
+   name VARCHAR2(20),
+   CONSTRAINT demo5_id_pk PRIMARY KEY(id)
+   );
+
+ CREATE TABLE demo6 (
+   id INTEGER,
+   name VARCHAR2(20),
+   subject_id VARCHAR2(20) REFERENCES subject(subject_id),
+   CONSTRAINT demo5_id_pk PRIMARY KEY(id)
+   );
+
+ CREATE TABLE demo7 (
+   id INTEGER,
+   name VARCHAR2(20),
+   subject_id VARCHAR2(20) CONSTRAINT demo7_subject_id_fk 
+   REFERENCES subject(subject_id),
+   CONSTRAINT demo5_id_pk PRIMARY KEY(id)
+   );
+
+
+    CREATE TABLE demo7 (
+   id INTEGER,
+   name VARCHAR2(20),
+   subject_id VARCHAR2(20),
+   CONSTRAINT demo6_subject_id FOREIGN KEY(subject_id) REFERENCES subject(subject_id)
+   CONSTRAINT demo5_id_pk PRIMARY KEY(id)
+   );
+
+  
+
+
+   CREATE TABLE demo8 (
+   id INTEGER,
+   name VARCHAR2(20),
+   phone_number VARCHAR2(10) UNIQUE,
+   subject_id VARCHAR2(20),
+   CONSTRAINT demo6_subject_id FOREIGN KEY(subject_id) REFERENCES subject(subject_id)
+   CONSTRAINT demo5_id_pk PRIMARY KEY(id)
+   );
+
+
+   CREATE TABLE demo9 (
+   id INTEGER,
+   name VARCHAR2(20),
+   phone_number VARCHAR2(10) CONSTRAINT demo9_id UNIQUE,
+   subject_id VARCHAR2(20),
+   CONSTRAINT demo6_subject_id FOREIGN KEY(subject_id) REFERENCES subject(subject_id)
+   CONSTRAINT demo5_id_pk PRIMARY KEY(id)
+   );
+
+   CREATE TABLE demo10(
+     id INTEGER,
+     desig VARCHAR2(20) CHECK (desig in('Mgr','AsstMgr','Vp')),
+     dept VARCHAR2(20)
+    )
+
+  CREATE TABLE demo11(
+     id INTEGER,
+     desig VARCHAR2(20) CONSTRAINT demo11_id_check CHECK (desig in('Mgr','AsstMgr','Vp')),
+     dept VARCHAR2(20)
+    )
+
+ CREATE TABLE demo12(
+     id INTEGER,
+     desig VARCHAR2(20), 
+     dept VARCHAR2(20),
+     CONSTRAINT demo11_id_check CHECK (desig in('Mgr','AsstMgr','Vp'))
+    )
+
+
+
+
+  
